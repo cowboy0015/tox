@@ -9,16 +9,9 @@ pub trait RandomVariable {
     fn eval(&self) -> f64;
 }
 
-impl<D: rand::distributions::Distribution<f64>> RandomVariable for D {
-    fn eval(&self) -> f64 {
-        self.sample(&mut rand::thread_rng())
-    }
-}
-
 #[derive(Clone)]
 pub enum MathOp {
     Number(f64),
-    RandVar(Rc<dyn RandomVariable>),
     Dynamic(Rc<dyn Fn() -> Result<f64, String>>),
 }
 
@@ -26,7 +19,6 @@ impl RandomVariable for MathOp {
     fn eval(&self) -> f64 {
         match self {
             MathOp::Number(n) => *n,
-            MathOp::RandVar(r) => r.eval(),
             MathOp::Dynamic(f) => f().unwrap(),
         }
     }
@@ -111,8 +103,8 @@ impl MathContext {
                     }
                     let args: Vec<_> = operands.split_off(operands.len() - arity);
                     operands.push(
-                        eval_fn(fname, &args).or_else::<String, _>(
-                            |_| Ok(build_rv(fname, &args)?.eval()))?);
+                        eval_fn(fname, &args)?
+                    );
                 }
                 _ => return Err(format!("Unexpected token for RPN eval: {:?}", token)),
             }
@@ -176,11 +168,9 @@ impl MathContext {
                     let fname = fname.clone();
                     let eval = move || -> Result<MathOp, String> {
                         let args: Vec<_> = args.iter().map(|v| v.eval()).collect();
-                        Ok(if let Ok(rv) = build_rv(&fname, &args) {
-                            MathOp::RandVar(rv)
-                        } else {
+                        Ok(
                             MathOp::Number(eval_fn(&fname, &args)?)
-                        })
+                        )
                     };
                     stack.push(if dynamic {
                         MathOp::Dynamic(Rc::new(move || eval().map(|v| v.eval())))
@@ -210,19 +200,8 @@ fn eval_fn(fname: &str, args: &[f64]) -> Result<f64, String> {
         // Order is important
         "nMPr" if args.len() == 2 => args[0].powf(args[1]),
         "nPr" if args.len() == 2 => funcs::permutations(args[0], args[1])?,
-        "rand" if args.len() == 1 => rand::random::<f64>() * args[0],
         "sin" if args.len() == 1 => args[0].sin(),
         _ => return Err(format!("Unknown Function: {} with {} args", fname, args.len()))
-    })
-}
-
-fn build_rv(dname: &str, args: &[f64]) -> Result<Rc<dyn RandomVariable>, String> {
-    use rand_distr::*;
-    Ok(match dname {
-        "normal" if args.len() == 2 => Rc::new(Normal::new(args[0], args[1]).unwrap()),
-        "uniform" if args.len() == 2 => Rc::new(Uniform::new(args[0], args[1])),
-        "lognormal" if args.len() == 2 => Rc::new(LogNormal::new(args[0], args[1]).unwrap()),
-        _ => return Err(format!("Unknown distribution: {} with {} args", dname, args.len()))
     })
 }
 

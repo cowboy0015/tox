@@ -3,17 +3,15 @@ name = "shunting"
 version = "0.1.2"
 edition = "2021"
 license = "MIT"
-authors = ["Rodolfo Granata <warlock.cc@gmail.com>"]
-description = "A library for evaluating math expressions"
-repository = "https://github.com/rodolf0/tox/tree/master/shunting"
+authors = ["Albert Hu<lightmorning46@gmail.com>"]
+description = "A simplified shunting library for evaluating math expressions in cosmwasm"
+repository = "https://github.com/cowboy0015/tox/tree/master/shunting"
 readme = "README.md"
 keywords = ["shunting", "math", "parser", "expression", "eval"]
 categories = ["parsing", "algorithms"]
 
 [dependencies]
 lexers = { version = "0.1", path = "../lexers" }
-rand = "0.8"
-rand_distr = "0.4"
 libm = "0.2"
 
 [dev-dependencies]

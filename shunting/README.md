@@ -1,6 +1,6 @@
 # Documentation
 
-A library for evaluating math expressions.
+Simplified shunting library for evaluating math expressions in cosmwasm smart contracts.
 
 ## Using the library
 
