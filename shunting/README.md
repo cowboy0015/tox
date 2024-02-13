@@ -1,6 +1,7 @@
 # Documentation
 
 Simplified shunting library for evaluating math expressions in cosmwasm smart contracts.
+The original crate https://crates.io/crates/shunting could not be used directly for cosmwasm (rand library can not be used directly for wasm-unknonw-unknown target).
 
 ## Using the library
 
